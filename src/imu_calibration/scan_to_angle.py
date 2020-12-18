@@ -28,8 +28,10 @@ class ScanToAngle:
         num = 0
         for r in msg.ranges:
             if angle > self.min_angle and angle < self.max_angle and r < msg.range_max:
-                x = sin(angle) * r
-                y = cos(angle) * r
+                x = cos(angle) * r
+                y = sin(angle) * r
+                #  x = sin(angle) * r
+                #  y = cos(angle) * r
                 sum_x += x
                 sum_y += y
                 sum_xx += x*x
@@ -53,3 +55,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
