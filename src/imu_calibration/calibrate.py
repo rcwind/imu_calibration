@@ -34,14 +34,11 @@ class CalibrateRobot:
     def __init__(self):
         self.lock = threading.Lock()
 
-        self.has_gyro = rospy.get_param("imu_node/has_gyro")
-        rospy.loginfo('has_gyro %s'%self.has_gyro)
-        if self.has_gyro:
-            self.sub_imu  = rospy.Subscriber('imu', Imu, self.imu_cb)
+        self.sub_imu  = rospy.Subscriber('imu', Imu, self.imu_cb)
 
         self.sub_odom = rospy.Subscriber('odom', Odometry, self.odom_cb)
         self.sub_scan = rospy.Subscriber('scan_angle', ScanAngle, self.scan_cb)
-        self.cmd_pub = rospy.Publisher('cmd_vel', Twist)
+        self.cmd_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
         self.imu_time = rospy.Time()
         self.odom_time = rospy.Time()
         self.scan_time = rospy.Time()
@@ -83,19 +80,14 @@ class CalibrateRobot:
         odom_delta = 2*pi + normalize_angle(odom_end_angle - odom_start_angle)
         rospy.loginfo('Odom error: %f percent'%(100.0*((odom_delta/scan_delta)-1.0)))
         
-        if self.has_gyro:
-            imu_delta = 2*pi + normalize_angle(imu_end_angle - imu_start_angle) - imu_drift*(imu_end_time - imu_start_time).to_sec()
-            rospy.loginfo('Imu error: %f percent'%(100.0*((imu_delta/scan_delta)-1.0)))
-            imu_result = imu_delta/scan_delta
-        else: 
-            imu_result = None
+        imu_delta = 2*pi + normalize_angle(imu_end_angle - imu_start_angle) - imu_drift*(imu_end_time - imu_start_time).to_sec()
+        rospy.loginfo('Imu error: %f percent'%(100.0*((imu_delta/scan_delta)-1.0)))
+        imu_result = imu_delta/scan_delta
 
         return (imu_result, odom_delta/scan_delta)
 
 
     def imu_drift(self):
-        if not self.has_gyro:
-            return 0
         # estimate imu drift
         rospy.loginfo('Estimating imu drift')
         (imu_start_angle, odom_start_angle, scan_start_angle, 
@@ -128,15 +120,13 @@ class CalibrateRobot:
             with self.lock:
                 angle = self.scan_angle
 
-
-
     def sync_timestamps(self, start_time=None):
         if not start_time:
             start_time = rospy.Time.now() + rospy.Duration(0.5)
         while not rospy.is_shutdown():
             rospy.sleep(0.3)
             with self.lock:
-                if self.imu_time < start_time and self.has_gyro:
+                if self.imu_time < start_time :
                     rospy.loginfo("Still waiting for imu")
                 elif self.odom_time < start_time:
                     rospy.loginfo("Still waiting for odom")
@@ -166,111 +156,10 @@ class CalibrateRobot:
             self.scan_angle = angle
             self.scan_time = msg.header.stamp
 
-def get_usb_to_serial_id():
-    usbpath = subprocess.check_output("readlink -f /sys/class/tty/ttyUSB0", shell=True)
-    usbpath = usbpath.strip()
-    if len(usbpath) == 0:
-        return None
-    serialid = ""
-    try:
-        f = open(usbpath + "/../../../../serial", "r")
-        serialid = f.read().strip()
-        f.close()
-    except:
-        pass
-    try:
-        f = open(usbpath + "/../../../../idVendor", "r")
-        serialid += f.read().strip()
-        f.close()
-        f = open(usbpath + "/../../../../idProduct", "r")
-        serialid += f.read().strip()
-        f.close()
-    except:
-        pass
-    if len(serialid.strip()) == 0:
-        return None
-    return serialid
-
-def get_kinect_serial():
-    ret = subprocess.check_output("lsusb -v -d 045e:02ae | grep Serial | awk '{print $3}'", shell=True)
-    if len(ret) > 0:
-        return ret.strip()
-    return None
-   
-def getCurrentParams(drclient):
-    allparams = drclient.get_configuration()
-    return (allparams['gyro_scale_correction'], allparams['odom_angular_scale_correction'], allparams['gyro_measurement_range'])
-
-def writeParams(drclient, newparams):
-    r = drclient.update_configuration(newparams) 
-    rospy.loginfo("Automatically updated the params in the current running instance of ROS, no need to restart.")
-
-def writeParamsToCalibrationFile(newparams):
-    kinect_serial = get_kinect_serial()
-    if kinect_serial is None:
-        kinect_serial =  get_usb_to_serial_id()  # can't find a kinect, attempt to use the usb to serial convert's id as a backup
-        if kinect_serial is None:
-            return
-    ros_home = os.environ.get('ROS_HOME')
-    if ros_home is None:
-        ros_home = "~/.ros"
-    calib_dir = os.path.expanduser(ros_home +"/imu_create/")
-    calib_file = calib_dir +str(kinect_serial) + ".yaml"
-    # if the file exists, load into a dict, update the new params, and then save
-    if os.path.isfile(calib_file):
-        f = open(calib_file, 'r')
-        docs = yaml.load_all(f)
-        d = docs.next()
-        for k,v in newparams.iteritems():
-            d[k] = v
-        newparams = d
-        f.close()
-    try:
-        os.makedirs(calib_dir)
-    except:
-        pass
-    with open(calib_file, 'w') as outfile:
-        outfile.write( yaml.dump(newparams, default_flow_style=False) )
-    rospy.loginfo("Saved the params to the calibration file: %s" % calib_file)
-
-def writeParamsToLaunchFile(gyro, odom, gyro_range):
-    try:
-        f = open("/etc/ros/distro/imu.launch", "r")
-        # this is totally NOT the best way to solve this problem.
-        foo = []
-        for lines in f:
-            if "imu_node/gyro_scale_correction" in lines:
-                foo.append("  <param name=\"imu_node/gyro_scale_correction\" value=\"%f\"/>\n" % gyro)
-            elif "imu_node/odom_angular_scale_correction" in lines:
-                foo.append("  <param name=\"imu_node/odom_angular_scale_correction\" value=\"%f\"/>\n" % odom)
-            elif "imu_node/gyro_measurement_range" in lines:
-                foo.append("  <param name=\"imu_node/gyro_measurement_range\" value=\"%f\"/>\n" % gyro_range)
-            else:
-                foo.append(lines)
-        f.close()
-
-        # and... write!
-        f = open("/etc/ros/distro/imu.launch", "w")
-        for i in foo:
-            f.write(i)
-        f.close()
-        rospy.loginfo("Automatically updated imu.launch, please restart the imu service.")
-    except:
-        rospy.loginfo("Could not automatically update imu.launch, please manually update it.")
-
-def warnAboutGyroRange(drclient):
-    params = getCurrentParams(drclient)
-    rospy.logwarn("***** If you have not manually set the gyro range parameter you must do so before running calibration.  Cancel this run and see http://wiki.ros.org/imu_calibration/Tutorials/Calibrate%20Odometry%20and%20Gyro")
-    rospy.logwarn("******* imu_node/gyro_measurement_range is currently set to: %d ******" % params[2])
-    
-    
 def main():
     rospy.init_node('scan_to_angle')
     robot = CalibrateRobot()
     imu_res = 1.0
-
-    drclient = dynamic_reconfigure.client.Client("imu_node")
-    warnAboutGyroRange(drclient)
 
     imu_drift = robot.imu_drift()
     imu_corr = []
@@ -278,22 +167,19 @@ def main():
     for speed in (0.3, 0.7, 1.0, 1.5):
         robot.align()
         (imu, odom) = robot.calibrate(speed, imu_drift)
+        rospy.loginfo("'gyro_scale_correction' = %f"%imu)
+        rospy.loginfo("'odom_angular_scale_correction' = %f"%odom)
         if imu:
             imu_corr.append(imu)
         odom_corr.append(odom)
     
-    (prev_gyro, prev_odom, gyro_range) = getCurrentParams(drclient)
     if len(imu_corr)>0:    
         imu_res = prev_gyro * (1.0/(sum(imu_corr)/len(imu_corr)))
-        rospy.loginfo("Set the 'imu_node/gyro_scale_correction' parameter to %f"%imu_res)
+        rospy.loginfo("final 'gyro_scale_correction' parameter is %f"%imu_res)
 
     odom_res = prev_odom * (1.0/(sum(odom_corr)/len(odom_corr)))
-    rospy.loginfo("Set the 'imu_node/odom_angular_scale_correction' parameter to %f"%odom_res)
-    writeParamsToLaunchFile(imu_res, odom_res, gyro_range)
-
-    newparams = {'gyro_scale_correction' : imu_res, 'odom_angular_scale_correction' : odom_res, 'gyro_measurement_range' : gyro_range}
-    writeParamsToCalibrationFile(newparams)
-    writeParams(drclient, newparams)
+    rospy.loginfo("final 'odom_angular_scale_correction' parameter is %f"%odom_res)
 
 if __name__ == '__main__':
     main()
+
