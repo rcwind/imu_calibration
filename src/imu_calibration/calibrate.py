@@ -78,10 +78,10 @@ class CalibrateRobot:
         scan_delta = 2*pi + normalize_angle(scan_end_angle - scan_start_angle)
 
         odom_delta = 2*pi + normalize_angle(odom_end_angle - odom_start_angle)
-        rospy.loginfo('Odom error: %f percent'%(100.0*((odom_delta/scan_delta)-1.0)))
+        rospy.loginfo('Odom error: %f%%'%(100.0*((odom_delta/scan_delta)-1.0)))
         
         imu_delta = 2*pi + normalize_angle(imu_end_angle - imu_start_angle) - imu_drift*(imu_end_time - imu_start_time).to_sec()
-        rospy.loginfo('Imu error: %f percent'%(100.0*((imu_delta/scan_delta)-1.0)))
+        rospy.loginfo('Imu error: %f%%'%(100.0*((imu_delta/scan_delta)-1.0)))
         imu_result = imu_delta/scan_delta
 
         return (imu_result, odom_delta/scan_delta)
@@ -174,10 +174,10 @@ def main():
         odom_corr.append(odom)
     
     if len(imu_corr)>0:    
-        imu_res = prev_gyro * (1.0/(sum(imu_corr)/len(imu_corr)))
+        imu_res = sum(imu_corr)/len(imu_corr)
         rospy.loginfo("final 'gyro_scale_correction' parameter is %f"%imu_res)
 
-    odom_res = prev_odom * (1.0/(sum(odom_corr)/len(odom_corr)))
+    odom_res = sum(odom_corr)/len(odom_corr)
     rospy.loginfo("final 'odom_angular_scale_correction' parameter is %f"%odom_res)
 
 if __name__ == '__main__':
