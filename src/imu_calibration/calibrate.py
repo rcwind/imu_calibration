@@ -212,7 +212,7 @@ def main():
         #  imu_res = robot.scale_average(imu_corr) 
         rospy.loginfo("final gyro_scale_correction parameter is %f"%imu_res)
     else:
-        rospy.logerr("no matched gyro_scale_correction parameter")
+        rospy.logerr("no matched gyro_scale_correction parameter, please check the imu")
 
     odom_res = sum(odom_corr)/len(odom_corr)
     #  odom_res = robot.scale_average(odom_corr) 
