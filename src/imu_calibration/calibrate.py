@@ -112,8 +112,8 @@ class CalibrateRobot:
             angle = self.scan_angle
         cmd = Twist()
 
+        rospy.loginfo("wall angle = %f(%fdeg)"%(angle, angle*180/pi))
         while (angle - pi/2) < -self.inital_wall_angle or (angle - pi/2) > self.inital_wall_angle:
-            #  rospy.loginfo("wall angle = %f(%fdeg)"%(angle, angle*180/pi))
             if rospy.is_shutdown():
                 exit(0)
             if angle > 0:
@@ -127,9 +127,9 @@ class CalibrateRobot:
 
     def sync_timestamps(self, start_time=None):
         if not start_time:
-            start_time = rospy.Time.now() + rospy.Duration(0.5)
+            start_time = rospy.Time.now() + rospy.Duration(1)
         while not rospy.is_shutdown():
-            rospy.sleep(0.3)
+            rospy.sleep(0.2)
             with self.lock:
                 if self.imu_time < start_time :
                     rospy.loginfo("Still waiting for imu")
