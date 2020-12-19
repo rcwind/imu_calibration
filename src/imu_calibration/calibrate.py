@@ -83,8 +83,8 @@ class CalibrateRobot:
         imu_result = imu_delta/scan_delta
         odom_result = odom_delta/scan_delta
 
-        rospy.loginfo("----------------------------------------------------")
-        rospy.loginfo("rotation speed = %fdeg/s"%(speed*180/pi))
+        rospy.loginfo(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        rospy.loginfo("rotation speed = %f(%fdeg/s)"%speed, (speed*180/pi))
         rospy.loginfo('Imu error: %f%%'%(100.0*(imu_result-1.0)))
         rospy.loginfo('Odom error: %f%%'%(100.0*(odom_result-1.0)))
 
@@ -199,7 +199,7 @@ def main():
         (imu, odom) = robot.calibrate(speed, imu_drift)
         rospy.loginfo("gyro_scale_correction = %f"%imu)
         rospy.loginfo("odom_angular_scale_correction = %f"%odom)
-        rospy.loginfo("----------------------------------------------------")
+        rospy.loginfo("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
         if imu:
             imu_corr.append(imu)
         odom_corr.append(odom)
