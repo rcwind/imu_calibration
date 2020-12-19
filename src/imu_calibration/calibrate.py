@@ -44,7 +44,7 @@ class CalibrateRobot:
         self.scan_time = rospy.Time()
         
         # params
-        self.inital_wall_angle = rospy.get_param("inital_wall_angle", 0.2)
+        self.inital_wall_angle = rospy.get_param("inital_wall_angle", 0.1)
         self.imu_calibrate_time = rospy.get_param("imu_calibrate_time", 10.0)
         self.imu_angle = 0
         self.imu_time = rospy.Time.now()
@@ -74,6 +74,7 @@ class CalibrateRobot:
             last_angle = self.odom_angle
         self.cmd_pub.publish(Twist())
 
+        rospy.sleep(3)
         (imu_end_angle, odom_end_angle, scan_end_angle,
          imu_end_time, odom_end_time, scan_end_time) = self.sync_timestamps()
 
@@ -111,8 +112,8 @@ class CalibrateRobot:
             angle = self.scan_angle
         cmd = Twist()
 
-        while angle < -self.inital_wall_angle or angle > self.inital_wall_angle:
-            rospy.loginfo("wall angle = %f(%fdeg)"%(angle, angle*180/pi))
+        while (angle - pi/2) < -self.inital_wall_angle or (angle - pi/2) > self.inital_wall_angle:
+            #  rospy.loginfo("wall angle = %f(%fdeg)"%(angle, angle*180/pi))
             if rospy.is_shutdown():
                 exit(0)
             if angle > 0:
@@ -196,7 +197,7 @@ def main():
     odom_corr = []
     for speed in (0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4):
         robot.align()
-        rospy.sleep(1.5)
+        rospy.sleep(3)
         (imu, odom) = robot.calibrate(speed, imu_drift)
         rospy.loginfo("gyro_scale_correction = %f"%imu)
         rospy.loginfo("odom_angular_scale_correction = %f"%odom)
@@ -205,7 +206,7 @@ def main():
             imu_corr.append(imu)
         odom_corr.append(odom)
 
-    imu_corr = robot.scan_filt(imu_corr)
+    imu_corr = robot.scale_filt(imu_corr)
     #  odom_corr = robot.filt(odom_corr)
 
     if  len(imu_corr > 0):
