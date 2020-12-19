@@ -84,7 +84,7 @@ class CalibrateRobot:
         odom_result = odom_delta/scan_delta
 
         rospy.loginfo("----------------------------------------------------")
-        rospy.loginfo("rotation speed = %deg/s"%speed*180/pi)
+        rospy.loginfo("rotation speed = %deg/s"%(speed*180/pi))
         rospy.loginfo('Imu error: %f%%'%(100.0*(imu_result-1.0)))
         rospy.loginfo('Odom error: %f%%'%(100.0*(odom_result-1.0)))
 
@@ -111,7 +111,7 @@ class CalibrateRobot:
             angle = self.scan_angle
         cmd = Twist()
 
-        rospy.loginfo("wall angle = %f degrees"%angle*180/pi)
+        rospy.loginfo("wall angle = %f degrees"%(angle*180/pi))
         while angle < -self.inital_wall_angle or angle > self.inital_wall_angle:
             if rospy.is_shutdown():
                 exit(0)
