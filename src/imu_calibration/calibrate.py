@@ -84,7 +84,7 @@ class CalibrateRobot:
         odom_result = odom_delta/scan_delta
 
         rospy.loginfo("----------------------------------------------------")
-        rospy.loginfo("rotation speed = %deg/s"%(speed*180/pi))
+        rospy.loginfo("rotation speed = %fdeg/s"%(speed*180/pi))
         rospy.loginfo('Imu error: %f%%'%(100.0*(imu_result-1.0)))
         rospy.loginfo('Odom error: %f%%'%(100.0*(odom_result-1.0)))
 
@@ -116,9 +116,9 @@ class CalibrateRobot:
             if rospy.is_shutdown():
                 exit(0)
             if angle > 0:
-                cmd.angular.z = -0.1
+                cmd.angular.z = -0.2
             else:
-                cmd.angular.z = 0.1
+                cmd.angular.z = 0.2
             self.cmd_pub.publish(cmd)
             rospy.sleep(0.05)
             with self.lock:
