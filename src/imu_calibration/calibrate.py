@@ -59,7 +59,7 @@ class CalibrateRobot:
          imu_start_time, odom_start_time, scan_start_time) = self.sync_timestamps()
         last_angle = odom_start_angle
         turn_angle = 0
-        rospy.loginfo("[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[")
+        rospy.loginfo("<<<================================================")
         rospy.loginfo("rotation speed = %f(%fdeg/s)"%(speed, speed*180/pi))
         while turn_angle < 2*pi:
             if rospy.is_shutdown():
@@ -166,7 +166,7 @@ class CalibrateRobot:
             return data_list
         if len(data_list)>2:
             for scale in data_list:
-                if (scale - 1.0) > 0.1 or (scale - 1.0) < -0.1:
+                if (scale - 1.0) > 0.05 or (scale - 1.0) < -0.05:
                     rospy.logwarn("drop scale value %f"%scale)
                     data_list.remove(scale)
             return data_list
@@ -195,13 +195,14 @@ def main():
     imu_drift = robot.imu_drift()
     imu_corr = []
     odom_corr = []
-    for speed in (0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4):
+    angular = (0.2, 0.4, 0.6, 0.8, 1.0)
+    for speed in vel:
         robot.align()
         rospy.sleep(3)
         (imu, odom) = robot.calibrate(speed, imu_drift)
         rospy.loginfo("gyro_scale_correction = %f"%imu)
         rospy.loginfo("odom_angular_scale_correction = %f"%odom)
-        rospy.loginfo("]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]")
+        rospy.loginfo("================================================>>>")
         if imu:
             imu_corr.append(imu)
         odom_corr.append(odom)
@@ -212,7 +213,7 @@ def main():
     if  len(imu_corr) > 0:
         imu_res = sum(imu_corr)/len(imu_corr)
         #  imu_res = robot.scale_average(imu_corr) 
-        rospy.loginfo('total valid result: %d'%(len(imu_corr)))
+        rospy.loginfo('total imu valid result: %d, drop %d result'%(len(imu_corr), len(angular)-len(imu_corr)))
         rospy.loginfo('final Imu error: %f%%'%(100.0*(imu_res-1.0)))
         rospy.loginfo("final gyro_scale_correction parameter is %f"%imu_res)
     else:
@@ -222,6 +223,7 @@ def main():
     #  odom_res = robot.scale_average(odom_corr) 
     rospy.loginfo('final Odom error: %f%%'%(100.0*(odom_res-1.0)))
     rospy.loginfo("final odom_angular_scale_correction parameter is %f"%odom_res)
+    rospy.spin()
 
 if __name__ == '__main__':
     main()
