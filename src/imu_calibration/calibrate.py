@@ -212,6 +212,7 @@ def main():
     if  len(imu_corr) > 0:
         imu_res = sum(imu_corr)/len(imu_corr)
         #  imu_res = robot.scale_average(imu_corr) 
+        rospy.loginfo('total valid result: %d'%(len(imu_corr)))
         rospy.loginfo('final Imu error: %f%%'%(100.0*(imu_res-1.0)))
         rospy.loginfo("final gyro_scale_correction parameter is %f"%imu_res)
     else:
