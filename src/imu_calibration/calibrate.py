@@ -116,9 +116,9 @@ class CalibrateRobot:
             if rospy.is_shutdown():
                 exit(0)
             if angle > 0:
-                cmd.angular.z = -0.3
+                cmd.angular.z = -0.1
             else:
-                cmd.angular.z = 0.3
+                cmd.angular.z = 0.1
             self.cmd_pub.publish(cmd)
             rospy.sleep(0.05)
             with self.lock:
