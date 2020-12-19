@@ -59,6 +59,8 @@ class CalibrateRobot:
          imu_start_time, odom_start_time, scan_start_time) = self.sync_timestamps()
         last_angle = odom_start_angle
         turn_angle = 0
+        rospy.loginfo(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        rospy.loginfo("rotation speed = %f(%fdeg/s)"%(speed, speed*180/pi))
         while turn_angle < 2*pi:
             if rospy.is_shutdown():
                 return
@@ -83,8 +85,6 @@ class CalibrateRobot:
         imu_result = imu_delta/scan_delta
         odom_result = odom_delta/scan_delta
 
-        rospy.loginfo(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        rospy.loginfo("rotation speed = %f(%fdeg/s)"%speed, %(speed*180/pi))
         rospy.loginfo('Imu error: %f%%'%(100.0*(imu_result-1.0)))
         rospy.loginfo('Odom error: %f%%'%(100.0*(odom_result-1.0)))
 
