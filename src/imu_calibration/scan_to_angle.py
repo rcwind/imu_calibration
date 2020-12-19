@@ -48,9 +48,9 @@ class ScanToAngle:
                 res.scan_angle = angle
                 self.pub.publish(res)
             else:
-                rospy.logerr("Please point me at a wall.")
+                rospy.logerr("div = 0")
         else:
-            rospy.logerr("div = 0")
+            rospy.logerr("please point me at a wall.")
 
 def main():
     rospy.init_node('scan_to_angle')
