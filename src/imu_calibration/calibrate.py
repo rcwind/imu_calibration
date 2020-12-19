@@ -209,15 +209,17 @@ def main():
     imu_corr = robot.scale_filt(imu_corr)
     #  odom_corr = robot.filt(odom_corr)
 
-    if  len(imu_corr > 0):
+    if  len(imu_corr) > 0:
         imu_res = sum(imu_corr)/len(imu_corr)
         #  imu_res = robot.scale_average(imu_corr) 
+        rospy.loginfo('final Imu error: %f%%'%(100.0*(imu_res-1.0)))
         rospy.loginfo("final gyro_scale_correction parameter is %f"%imu_res)
     else:
         rospy.logerr("no matched gyro_scale_correction parameter, please check the imu")
 
     odom_res = sum(odom_corr)/len(odom_corr)
     #  odom_res = robot.scale_average(odom_corr) 
+    rospy.loginfo('final Odom error: %f%%'%(100.0*(odom_res-1.0)))
     rospy.loginfo("final odom_angular_scale_correction parameter is %f"%odom_res)
 
 if __name__ == '__main__':
