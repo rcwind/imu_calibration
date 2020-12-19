@@ -196,7 +196,7 @@ def main():
     imu_corr = []
     odom_corr = []
     angular = (0.2, 0.4, 0.6, 0.8, 1.0)
-    for speed in vel:
+    for speed in angular:
         robot.align()
         rospy.sleep(3)
         (imu, odom) = robot.calibrate(speed, imu_drift)
