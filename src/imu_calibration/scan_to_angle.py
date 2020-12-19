@@ -21,11 +21,12 @@ class ScanToAngle:
     def scan_cb(self, msg):
         angle = msg.angle_min
         d_angle = msg.angle_increment
-        sum_x = 0
-        sum_y = 0
-        sum_xx = 0
-        sum_xy = 0
-        num = 0
+        sum_x = 0.0
+        sum_y = 0.0
+        sum_xx = 0.0
+        sum_xy = 0.0
+        num = 0.0
+        div = 0.0
         for r in msg.ranges:
             if angle > self.min_angle and angle < self.max_angle and r < msg.range_max:
                 x = cos(angle) * r
@@ -39,13 +40,17 @@ class ScanToAngle:
                 num += 1
             angle += d_angle
         if num > 0:
-            angle=atan2((-sum_x*sum_y+num*sum_xy)/(num*sum_xx-sum_x*sum_x), 1)
-            res = ScanAngle()
-            res.header = msg.header
-            res.scan_angle = angle
-            self.pub.publish(res)
+            div = num*sum_xx-sum_x*sum_x;
+            if(div != 0):
+                angle=atan2((-sum_x*sum_y+num*sum_xy)/div, 1)
+                res = ScanAngle()
+                res.header = msg.header
+                res.scan_angle = angle
+                self.pub.publish(res)
+            else:
+                rospy.logerr("Please point me at a wall.")
         else:
-            rospy.logerr("Please point me at a wall.")
+            rospy.logerr("div = 0")
 
 def main():
     rospy.init_node('scan_to_angle')
