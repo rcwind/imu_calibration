@@ -127,7 +127,7 @@ class CalibrateRobot:
 
     def sync_timestamps(self, start_time=None):
         if not start_time:
-            start_time = rospy.Time.now() + rospy.Duration(1)
+            start_time = rospy.Time.now() + rospy.Duration(0.5)
         while not rospy.is_shutdown():
             rospy.sleep(0.2)
             with self.lock:
@@ -161,7 +161,7 @@ class CalibrateRobot:
             self.scan_angle = angle
             self.scan_time = msg.header.stamp
 
-    def scale_filt(data_list):
+    def scale_filt(self, data_list):
         if len(data_list)==0:
             return data_list
         if len(data_list)>2:
@@ -173,7 +173,7 @@ class CalibrateRobot:
         elif len(data_list)<=2:
             return data_list
 
-    def scale_average(data_list):
+    def scale_average(self, data_list):
         if len(data_list)==0:
             return 0
         if len(data_list)>2:
