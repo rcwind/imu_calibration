@@ -41,7 +41,7 @@ class ScanToAngle:
             angle += d_angle
         if num > 0:
             div = num*sum_xx-sum_x*sum_x;
-            if(div != 0):
+            if div != 0:
                 angle=atan2((-sum_x*sum_y+num*sum_xy)/div, 1)
                 res = ScanAngle()
                 res.header = msg.header
