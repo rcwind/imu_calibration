@@ -5,7 +5,10 @@
   </node>
 
   <node pkg="imu_calibration" type="calibrate.py" name="imu_calibration" output="screen" required="true">
+    <param name="imu_calibrate_time" value="10" />
+    <param name="inital_wall_angle" value="0.1" />
     <param name="align_vel" value="0.1" />
+
     <remap from="imu" to="mobile_base/sensors/imu_data" />
     <remap from="cmd_vel" to="mobile_base/commands/velocity" />
     <remap from="scan_angle" to="scan_angle" />

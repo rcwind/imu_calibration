@@ -7,6 +7,7 @@ import yaml
 import rospy
 from sensor_msgs.msg import LaserScan
 from imu_calibration.msg import ScanAngle
+from sensor_msgs.msg import PointCloud2
 from math import *
 
 
@@ -16,6 +17,7 @@ class ScanToAngle:
         self.max_angle = rospy.get_param('max_angle', 0.3)
         self.pub = rospy.Publisher('scan_angle', ScanAngle, queue_size=1)
         self.sub = rospy.Subscriber('scan', LaserScan, self.scan_cb)
+        self.pt_pub = rospy.Publisher ("wall", PointCloud2, queue_size=1)
 
 
     def scan_cb(self, msg):
