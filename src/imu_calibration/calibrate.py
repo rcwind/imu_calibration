@@ -44,8 +44,9 @@ class CalibrateRobot:
         self.scan_time = rospy.Time()
         
         # params
-        self.inital_wall_angle = rospy.get_param("inital_wall_angle", 0.1)
-        self.imu_calibrate_time = rospy.get_param("imu_calibrate_time", 10.0)
+        self.inital_wall_angle = rospy.get_param("~inital_wall_angle", 0.1)
+        self.align_vel = rospy.get_param("~align_vel", 0.2)
+        self.imu_calibrate_time = rospy.get_param("~imu_calibrate_time", 10.0)
         self.imu_angle = 0
         self.imu_time = rospy.Time.now()
         self.scan_angle = 0
@@ -117,9 +118,9 @@ class CalibrateRobot:
             if rospy.is_shutdown():
                 exit(0)
             if angle > 0:
-                cmd.angular.z = -0.1
+                cmd.angular.z = -self.align_vel
             else:
-                cmd.angular.z = 0.1
+                cmd.angular.z = self.align_vel
             self.cmd_pub.publish(cmd)
             rospy.sleep(0.1)
             with self.lock:
